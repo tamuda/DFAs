@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 
 struct DFA {
     int startState;
@@ -57,11 +58,11 @@ int transitionForEndInAt(int state, char input) {
     if (state == 0 && input == 'a') {
         return 1;
     } else if (state == 1 && input == 't') {
-        return 2;  // Transition to the final state if 'a' is followed by 't'
+        return 2;  
     } else if (state == 0 && input != 'a') {
         return 0;  // If 'at' doesn't start at the beginning, stay in the start state
     }
-    return -1;  // Invalid transition
+    return -1; 
 }
 
 // Transition function for the NFA recognizing strings containing "got"
@@ -102,7 +103,6 @@ bool NFA_run(struct NFA* nfa, const char* input) {
         int nextState = nfa->transitionFunction(nfa->currentState, input[i]);
         
         if (nextState == -1) {
-            // Invalid transition
             return false;
         }
         
@@ -150,6 +150,11 @@ void NFA_repl(struct NFA* nfa, const char* description) {
 
         printf("Result for input \"%s\": %s\n", input, NFA_run(nfa, input) ? "true" : "false");
     }
+}
+
+// Function to convert an NFA to a DFA
+DFA* NFA_to_DFA(NFA* nfa) {
+
 }
 
 int main() {
