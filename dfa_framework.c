@@ -20,9 +20,17 @@ struct NFA {
     int (*transitionFunction)(int, char);
 };
 
-//for the NFA of characterCounts
-int stateCount[7] = {0,0,0,0,0,-1,-1};
-char charCount[7] = {'a','e','i','h','g','n','p'};
+int characterCounts[7] = {0};  
+char characters[7] = {'a', 'e', 'h', 'i', 'g', 'n', 'p'};
+
+void countCharacters(char input) {
+    for (int i = 0; i < 7; i++) {
+        if (input == characters[i]) {
+            characterCounts[i]++;
+            break;  
+        }
+    }
+}
 
 // Transition function for the string "CSC"
 int transitionForCSC(int state, char input) {
@@ -84,31 +92,34 @@ int transitionForContainsGot(int state, char input) {
 }
 
 // Transition function for the NFA recognizing strings that have more than one a, e, h, i, or g, or more than two n’s or p’s
-int transitionForCharacterCounts(int state, char input) { 
-    int i;
-    int *tempStateCount = &stateCount[0];
-
-    for (i = 0; i < 7; i++) {
-        if (input == charCount[i] && state < 2) {
-            *(tempStateCount + i) += 1;
-        }
-    }
-    for (i = 0; i < 7; i++) {
-        if (stateCount[i] > state) {
-            state = *(tempStateCount + i);
-        }
-    }
-    for (i = 0; i < 7; i++) {
-         if (i < 5) {
-              *(tempStateCount + i) = 0;
-         }
-         else {
-              *(tempStateCount + i) = -1;
-          }
+bool transitionForCharacterCounts(const char* input) {
+    // Reset character counts for each new input string
+    for (int i = 0; i < 7; i++) {
+        characterCounts[i] = 0;
     }
 
-    return state;  
+    // Count the occurrences of each character in the input string
+    for (int i = 0; i < strlen(input); i++) {
+        countCharacters(input[i]);
+    }
+
+    // Check conditions for 'a', 'e', 'h', 'i', 'g', 'n', and 'p'
+    for (int i = 0; i < 5; i++) {
+        if (characterCounts[i] > 1) {
+            return true;  
+        }
+    }
+
+    // Check conditions for 'n' and 'p'
+    for (int i = 5; i < 7; i++) {
+        if (characterCounts[i] > 2) {
+            return true;  
+        }
+    }
+
+    return false; 
 }
+
 
 bool DFA_run(struct DFA* dfa, const char* input) {
     dfa->currentState = dfa->startState;
@@ -172,6 +183,24 @@ void NFA_repl(struct NFA* nfa, const char* description) {
         nfa->currentState = nfa->startState;
 
         printf("Result for input \"%s\": %s\n", input, NFA_run(nfa, input) ? "true" : "false");
+    }
+}
+
+void NFA_repl_characterCounts() {
+    char input[128];
+
+    printf("Testing NFA that with strings that have more than one a, e, h, i, or g, or more than two n’s or p’s...\n");
+
+    while (1) {
+        printf("Enter an input (\"quit\" to quit): ");
+        fgets(input, sizeof(input), stdin);
+        input[strcspn(input, "\n")] = 0;
+
+        if (strcmp(input, "quit") == 0) {
+            break;
+        }
+
+        printf("Result for input \"%s\": %s\n", input, transitionForCharacterCounts(input) ? "true" : "false");
     }
 }
 
@@ -307,7 +336,6 @@ int main() {
 
     struct NFA nfaForEndInAt = {0, 0, {2}, 1, transitionForEndInAt};
     struct NFA nfaForContainsGot = {0, 0, {3}, 1, transitionForContainsGot};
-    struct NFA nfaForCharacterCounts = {0, 0, {2}, 1, transitionForCharacterCounts};
 
     printf("CSC173 Project 1 by Gem and Tamuda \n");
 
@@ -318,7 +346,8 @@ int main() {
 
     NFA_repl(&nfaForEndInAt, "strings ending in \"at\"");
     NFA_repl(&nfaForContainsGot, "strings contains got");
-    NFA_repl(&nfaForCharacterCounts, "Strings that have more than one a, e, h, i, or g, or more than two n’s or p’s");
+    NFA_repl_characterCounts();
+
 
     return 0;
 }
