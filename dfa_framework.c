@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-//#define MAX_STATES 10
+#define MAX_STATES 10
 
 struct DFA {
     int startState;
@@ -236,60 +236,31 @@ void NFA_repl_characterCounts() {
 
 // // Helper function to check if a state set is already in the DFA
 // int findDFAState(DFAState** dfaStates, int numDFAStates, NFAStateSet* nfaSet) {
-//     // TODO: Implement this function to find a matching DFA state, return -1 if not found
-//     // You'll compare the NFAStateSet of each DFAState with nfaSet
+//     for (int i = 0; i < numDFAStates; i++) {
+//         if (memcmp(dfaStates[i]->nfaStateSet.states, nfaSet->states, sizeof(int) * nfaSet->count) == 0) {
+//             return i;  // Found the same NFA state set in the DFA
+//         }
+//     }
+//     return -1;  // Not found
 // }
 
 // // Add a new DFA state to the queue for processing
 // void enqueueDFAState(Queue* queue, DFAState* state) {
-//     // TODO: Implement this function to enqueue a DFA state for processing
+//     if (queue->size == queue->capacity) return;  // Queue is full, should not happen in this implementation
+
+//     queue->rear = (queue->rear + 1) % queue->capacity;
+//     queue->array[queue->rear] = state;
+//     queue->size++;
 // }
 
 // // Create a mapping from sets of NFA states to DFA states
-// Map* nfaToDfaMap = createMap();
-// addToMap(nfaToDfaMap, epsilonClosureSet, initialDFAState);
-
-// while (!isEmpty(dfaStatesQueue)) {
-//     DFAState* currentDFAState = dequeueDFAState(dfaStatesQueue);
-
-//     // Process each input symbol
-//     for (char inputSymbol = 'a'; inputSymbol <= 'z'; inputSymbol++) {
-//         // Compute transitions based on the input symbol
-
-//         // TODO: Implement transition logic for the current DFA state and input symbol
-
-//         // Calculate ε-closure of the resulting NFA state set
-
-//         // TODO: Implement epsilon closure calculation
-//     }
-// }
-
-// // Inside the inner loop for processing input symbols
-// NFAStateSet nextStateSet;
-// computeTransition(nfa, &currentDFAState->nfaStateSet, inputSymbol, &nextStateSet);
-
-// // Calculate ε-closure of the resulting NFA state set
-// NFAStateSet* epsilonClosureSet = createNFAStateSet();
-// epsilonClosure(nfa, nextStateSet.states, nextStateSet.count, epsilonClosureSet);
-
-// // Check if this set of NFA states is already a DFA state
-// int existingDFAState = findDFAState(dfaStates, numDFAStates, epsilonClosureSet);
-
-// // TODO: Implement adding transitions to the DFA based on existing or new DFA state
-
-// void computeTransition(NFA* nfa, NFAStateSet* nfaStateSet, char inputSymbol, NFAStateSet* nextStateSet) {
-//     // TODO: Implement transition calculation based on input symbol and current NFA state set
-// }
-
-// void processDFANewState(Queue* dfaStatesQueue, DFAState** dfaStates, int* numDFAStates, NFAStateSet* nfaStateSet) {
-//     // TODO: Implement processing of a new DFA state and enqueueing it for further processing
-// }
-
-// // Mark accept states in DFA
-// // TODO: Modify this based on your accept state marking logic
+// typedef struct {
+//     NFAStateSet* nfaSet;
+//     int dfaState;
+// } NFAToDFA;
 
 // // Function to convert an NFA to a DFA
-// DFA* NFA_to_DFA(NFA* nfa) {
+// DFAState* NFA_to_DFA(NFA* nfa) {
 //     // Initialize the DFA and other necessary data structures
 
 //     // Step 1: Compute ε-closure of the start state of NFA
@@ -305,24 +276,82 @@ void NFA_repl_characterCounts() {
 //     initialDFAState->dfaState = 0;
 //     enqueueDFAState(dfaStatesQueue, initialDFAState);
 
-//     // Create a mapping from sets of NFA states to DFA states
-//     // This will help in avoiding duplicates and mapping transitions
-//     Map* nfaToDfaMap = createMap();
-//     addToMap(nfaToDfaMap, epsilonClosureSet, initialDFAState);
+//     // Create an array to store DFA states
+//     int numDFAStates = 0;
+//     int maxDFAStates = MAX_STATES;  // Assuming a maximum number of DFA states
+//     DFAState** dfaStates = (DFAState**)malloc(sizeof(DFAState*) * maxDFAStates);
+
+//     // Create an array to store the mapping of NFA states to DFA states
+//     NFAToDFA* nfaToDFA = (NFAToDFA*)malloc(sizeof(NFAToDFA) * maxDFAStates);
+
+//     // Map the initial DFA state to its corresponding NFA state set
+//     nfaToDFA[initialDFAState->dfaState].nfaSet = &initialDFAState->nfaStateSet;
+//     nfaToDFA[initialDFAState->dfaState].dfaState = initialDFAState->dfaState;
 
 //     // Process DFA states to build the DFA
-//     while (!isEmpty(dfaStatesQueue)) {
+//     while (queueNotEmpty(dfaStatesQueue)) {
 //         DFAState* currentDFAState = dequeueDFAState(dfaStatesQueue);
-        
-//         // TODO: Implement transitions and processing of NFA states to build the DFA
+
 //         // Compute transitions for each symbol and the ε-closure of the resulting NFA states
+//         for (char inputSymbol = 'a'; inputSymbol <= 'z'; inputSymbol++) {
+//             NFAStateSet nextStateSet;
+//             computeTransition(nfa, &currentDFAState->nfaStateSet, inputSymbol, &nextStateSet);
+
+//             // Calculate ε-closure of the resulting NFA state set
+//             NFAStateSet* epsilonClosureSet = createNFAStateSet();
+//             epsilonClosure(nfa, nextStateSet.states, nextStateSet.count, epsilonClosureSet);
+
+//             // Check if this set of NFA states is already a DFA state
+//             int existingDFAState = findDFAState(dfaStates, numDFAStates, epsilonClosureSet);
+
+//             if (existingDFAState == -1) {
+//                 // Process a new DFA state and enqueue it for further processing
+//                 processDFANewState(dfaStatesQueue, dfaStates, &numDFAStates, epsilonClosureSet, nfaToDFA);
+//             }
+//             else {
+//                 // Add a transition from the current DFA state to the existing DFA state
+//                 addDFATransition(currentDFAState, inputSymbol, nfaToDFA[existingDFAState].dfaState);
+//             }
+
+//             free(epsilonClosureSet);
+//         }
 //     }
 
-//     // Mark accept states in DFA
-//     // TODO: Modify this based on your accept state marking logic
+//     // TODO: Mark accept states in DFA based on your accept state marking logic
 
-//     return dfa;
+//     // Clean up
+//     free(epsilonClosureSet);
+//     for (int i = 0; i < numDFAStates; i++) {
+//         free(dfaStates[i]);
+//     }
+//     free(dfaStates);
+//     free(nfaToDFA);
+
+//     return initialDFAState;
 // }
+
+// // Helper function to add a transition from a DFA state to another DFA state
+// void addDFATransition(DFAState* dfaState, char inputSymbol, int targetDFAState) {
+//     // TODO: Implement this based on your DFA transition function and data structures
+// }
+
+// // Helper function to process a new DFA state and enqueue it for further processing
+// void processDFANewState(Queue* dfaStatesQueue, DFAState** dfaStates, int* numDFAStates, NFAStateSet* nfaStateSet, NFAToDFA* nfaToDFA) {
+//     // TODO: Implement this based on your DFA state processing logic
+
+//     // Create a new DFA state
+//     DFAState* newDFAState = (DFAState*)malloc(sizeof(DFAState));
+//     newDFAState->nfaStateSet = *nfaStateSet;
+//     newDFAState->dfaState = *numDFAStates;
+
+//     // TODO: Mark accept state in the DFA if it corresponds to an accept state in the NFA
+
+//     // Enqueue the new DFA state for further processing
+//     enqueueDFAState(dfaStatesQueue, newDFAState);
+
+//     // Update the mapping of NFA states to DFA states
+//     nfaToDFA[newDFAState->dfaState].nfaSet = nfaStateSet;
+//     nfaToDFA[newDFAState->dfaState].dfaState = newDFAState->dfaState;
 
 //
 //
@@ -348,6 +377,20 @@ int main() {
     NFA_repl(&nfaForContainsGot, "strings contains got");
     NFA_repl_characterCounts();
 
+    // // Create an NFA
+    // struct NFA nfaForEndInAt = {0, 0, {2}, 1, transitionForEndInAt};
+
+    // // Convert the NFA to a DFA
+    // DFAState* initialDFAState = NFA_to_DFA(&nfaForEndInAt);
+
+    // // Print the DFA state for debugging
+    // printf("Initial DFA State: %d\n", initialDFAState->dfaState);
+
+    // // Test the DFA
+    // DFA_repl(initialDFAState, "strings ending in \"at\"");
+
+    // // Clean up the dynamically allocated memory for DFA
+    // free(initialDFAState);
 
     return 0;
 }
